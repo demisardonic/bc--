@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,12 +44,16 @@ int size_op(const shunting_t *yard){
 
 void print_op_stack(const shunting_t *yard){
   int i = yard->op_size - 1;
-  printf("Shunting Operator Stack: ");
-  while(i >= 0){
-    printf("%c ", yard->op_stack[i]);
-    i--;
+  printf("Operator Stack: [");
+  if(i == -1){
+    printf("EMPTY");
+  }else{ 
+    while(i >= 0){
+      printf("%c, ", yard->op_stack[i]);
+      i--;
+    }
   }
-  printf("\n");
+  printf("]\n");
 }
 
 void push_val(shunting_t *yard, const double v){
@@ -73,12 +78,22 @@ double peak_val(const shunting_t *yard){
 int size_val(const shunting_t *yard){
   return yard->val_size;
 }
+
 void print_val_stack(const shunting_t *yard){
   int i = yard->val_size - 1;
-  printf("Shunting Value Stack: ");
-  while(i >= 0){
-    printf("%lf ", yard->val_stack[i]);
-    i--;
+  
+  printf("Value Stack: [");
+  if(i == -1){
+    printf("EMPTY");
+  }else{
+    while(i >= 0){
+      double value = yard->val_stack[i];
+      if(value - floor(value))
+	printf("%lf, ", value);
+      else
+	printf("%d, ", (int) value);
+      i--;
+    }
   }
-  printf("\n");
+  printf("]\n");
 }

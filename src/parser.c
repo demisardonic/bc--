@@ -27,7 +27,6 @@ int is_op(char c){
 double pop_math(shunting_t *yard){
   if(size_op(yard)){
     char op = pop_op(yard);
-    printf("Using op from stack: %c\n", op);
     if(op == '+'){
       return pop_val(yard) + pop_val(yard);
     }else if(op == '-'){
@@ -48,12 +47,11 @@ double pop_math(shunting_t *yard){
   return 0;
 }
 
-void parse(shunting_t *yard, char *line){
+void parse(shunting_t *yard, const char *line){
   int pos = 0;
   int len = strlen(line);
   char cur;
   char token[256];
-  line[--len] = 0;
   
   while(pos<len){
     cur = line[pos];
@@ -66,14 +64,12 @@ void parse(shunting_t *yard, char *line){
 	exit(-1);
       }
       push_val(yard, atof(token));
-      printf("Parsed value %s\n", token);
     }else if(is_op(cur)){
       while(size_op(yard) && op_to_pres(peak_op(yard)) >= op_to_pres(cur)){
 	push_val(yard, pop_math(yard));
       }
       push_op(yard, cur);
       pos++;
-      printf("Parsed op %c\n", cur);
     }else if(cur == '('){
       push_op(yard, cur);
       pos++;
@@ -89,13 +85,12 @@ void parse(shunting_t *yard, char *line){
     }
   }
 
-  //TODO Done parsing, pop entire op stack to generate return value
   while(size_op(yard)){
     push_val(yard, pop_math(yard));
   }
 }
 
-int parse_val(char *line, int len, int pos, char *token){
+int parse_val(const char *line, const int len, int pos, char *token){
   int token_pos = 0;
   char cur = line[pos];
 
