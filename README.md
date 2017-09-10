@@ -1,5 +1,4 @@
-WHERE YOU LEFT OFF
+##A strictly worse version of the bc command line calculator
 
-parsing values ie doubles is functioning, needs more testing.
-ops are not handled
-inputing not yet accepted values causes infinite loop at parser.c:16
+bc-- uses the [Shunting-yard Algorithm](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) for parsing and expressing infix mathematic expressions.
+
