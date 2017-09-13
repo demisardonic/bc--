@@ -5,37 +5,29 @@
 #include <string.h>
 
 #include "command.h"
+#include "history.h"
 #include "parser.h"
 #include "shunting.h"
 #include "util.h"
 
-void draw_newest_history(shunting_t *yard, const char **history, int size){
+void draw_newest_history(const history_t *history){
   int height, cur_x;
   getmaxyx(stdscr, height, cur_x);
   cur_x = 0;
   clear();
-  int history_from = size - (height / 2);
+  int history_from = history->size - (height / 2);
   int cur_y = 0;
 
-  while(history_from < size){
-    mvprintw(cur_y++, cur_x, history[history_from]);
-    parse(yard, history[history_from]);
-    double value = pop_val(yard);
-    if(value == floor(value)){
-      mvprintw(++cur_y, cur_x, "%d", (int) value);
-    }else{
-      mvprintw(++cur_y, cur_x, "%lf", value);
-    }
-    cur_y++;
+  while(history_from < history->size){
+    mvprintw(cur_y++, cur_x, history->lines[history_from]);
+    mvprintw(cur_y++, cur_x, "%lf", history->vals[history_from]);
     move(cur_y, cur_x);    
   }
 }
 
 int main(int argv, char **argc){
   shunting_t yard;
-  char **history;
-  double *val_history;
-  int history_length, history_size;
+  history_t history;
   char line[256];
   int line_size;
   int key, cur_y, cur_x;
@@ -45,17 +37,14 @@ int main(int argv, char **argc){
 
   memset(line, 0, 256);
   
-  history_length = DEFAULT_LENGTH;
-  history_size = 0;
-  history = (char **)malloc(sizeof(char *) * history_length);
-  val_history = (double *) malloc(sizeof(double) * history_length);
-  
   shunting_init(&yard);
-
+  history_init(&history);
+  
   initscr();
   keypad(stdscr, TRUE);
   noecho();
   cur_y = cur_x = 0;
+
   // Keyboard input, count the size of the input
   do{
     line_size = 0;
@@ -82,7 +71,7 @@ int main(int argv, char **argc){
     
     if(line_size > 0){
       //TODO handle more calculations than vertical space allows
-      if(history_size * 2 > max_height){
+      if(history.size * 2 > max_height){
 
       }
       
@@ -92,19 +81,19 @@ int main(int argv, char **argc){
       line_string[line_size] = '\0';
       cur_x = 0;
       //store that pointer within history
-      if(history_size == history_length){
-	history_length *= 2;
-	history = (char **) realloc(history, sizeof(char *) * history_length);
-	val_history = (double *) realloc(val_history, sizeof(double) * history_length);
+      if(history.size == history.length){
+	history.length *= 2;
+	history.lines = (char **) realloc(history.lines, sizeof(char *) * history.length);
+	history.vals = (double *) realloc(history.vals, sizeof(double) * history.length);
       }
-      history[history_size] = line_string;
+      history.lines[history.size] = line_string;
       
       //parse that input with shunting_yard structure
       parse(&yard, line_string);
       double value = pop_val(&yard);
 
-      val_history[history_size] = value;
-      history_size++;
+      history.vals[history.size] = value;
+      history.size++;
 
       if(value == floor(value)){
 	mvprintw(++cur_y, cur_x, "%d", (int) value);
@@ -118,12 +107,7 @@ int main(int argv, char **argc){
   
   endwin();  
 
-  //free every string in the history
-  while(history_size > 0){
-    free(history[--history_size]);
-  }
-  //free the history array;
-  free(history);
+  history_delete(&history);
   shunting_delete(&yard);
   return 0;
 }
