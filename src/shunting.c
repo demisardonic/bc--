@@ -1,4 +1,5 @@
 #include <math.h>
+#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,16 +46,16 @@ int size_op(const shunting_t *yard){
 
 void print_op_stack(const shunting_t *yard){
   int i = yard->op_size - 1;
-  printf("Operator Stack: [");
+  printw("Operator Stack: [");
   if(i == -1){
-    printf("EMPTY");
+    printw("EMPTY");
   }else{ 
     while(i >= 0){
-      printf("%c, ", yard->op_stack[i]);
+      printw("%c, ", yard->op_stack[i]);
       i--;
     }
   }
-  printf("]\n");
+  printw("]");
 }
 
 void push_val(shunting_t *yard, const double v){
@@ -83,18 +84,18 @@ int size_val(const shunting_t *yard){
 void print_val_stack(const shunting_t *yard){
   int i = yard->val_size - 1;
   
-  printf("Value Stack: [");
+  printw("Value Stack: [");
   if(i == -1){
-    printf("EMPTY");
+    printw("EMPTY");
   }else{
     while(i >= 0){
       double value = yard->val_stack[i];
       if(value - floor(value))
-	printf("%lf, ", value);
+	printw("%lf, ", value);
       else
-	printf("%d, ", (int) value);
+	printw("%d, ", (int) value);
       i--;
     }
   }
-  printf("]\n");
+  printw("]");
 }

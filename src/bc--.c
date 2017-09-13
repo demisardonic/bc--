@@ -42,6 +42,8 @@ int main(int argv, char **argc){
   do{
     line_size = 0;
     x_offset = 0;
+    cur_x = 0;
+    move(cur_y, cur_x);
     do{
       if(should_redraw){
 	clear_line(cur_y);
@@ -94,9 +96,12 @@ int main(int argv, char **argc){
       char *line_string = (char *)malloc(sizeof(char) * (line_size + 1));
       memcpy(line_string, line, line_size);
       line_string[line_size] = '\0';
-      
+      cur_x = 0;
+      cur_y++;
+      mvaddch(cur_y, cur_x, '>');
+      cur_x++;
       if(line_string[0] != '`'){
-	cur_x = 0;
+	
 	//store that pointer within history
 	if(history.size == history.length){
 	  history.length *= 2;
@@ -112,12 +117,13 @@ int main(int argv, char **argc){
 	history.vals[history.size] = value;
 	history.size++;
 
-	print_val(++cur_y, cur_x, value, 0);
-	cur_y++;
-	move(cur_y, cur_x);
+	print_val(cur_y, cur_x, value, 0);
       }else{
+	move(cur_y, cur_x);
 	handle(line_string, &yard, &history);
       }
+	cur_y++;
+	move(cur_y, cur_x);
     }
   }while(line_size != 0);
   
