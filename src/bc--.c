@@ -43,7 +43,6 @@ int main(int argv, char **argc){
     line_size = 0;
     x_offset = 0;
     do{
-
       if(should_redraw){
 	clear_line(cur_y);
 	mvprintw(cur_y, 0, line+x_offset);
@@ -54,7 +53,7 @@ int main(int argv, char **argc){
       key = getch();
 
       //TODO need 256 bounds check for input line
-      if(is_val(key)){
+      if(is_val(key) || is_op(key) || key == '`' || is_alpha(key)){
 	line[line_size] = key;
 	line_size++;
 	mvaddch(cur_y, cur_x-x_offset, key);
@@ -95,25 +94,30 @@ int main(int argv, char **argc){
       char *line_string = (char *)malloc(sizeof(char) * (line_size + 1));
       memcpy(line_string, line, line_size);
       line_string[line_size] = '\0';
-      cur_x = 0;
-      //store that pointer within history
-      if(history.size == history.length){
-	history.length *= 2;
-	history.lines = (char **) realloc(history.lines, sizeof(char *) * history.length);
-	history.vals = (double *) realloc(history.vals, sizeof(double) * history.length);
-      }
-      history.lines[history.size] = line_string;
       
-      //parse that input with shunting_yard structure
-      parse(&yard, line_string);
-      double value = pop_val(&yard);
-      //store the calculated value in the history
-      history.vals[history.size] = value;
-      history.size++;
+      if(line_string[0] != '`'){
+	cur_x = 0;
+	//store that pointer within history
+	if(history.size == history.length){
+	  history.length *= 2;
+	  history.lines = (char **) realloc(history.lines, sizeof(char *) * history.length);
+	  history.vals = (double *) realloc(history.vals, sizeof(double) * history.length);
+	}
+	history.lines[history.size] = line_string;
+      
+	//parse that input with shunting_yard structure
+	parse(&yard, line_string);
+	double value = pop_val(&yard);
+	//store the calculated value in the history
+	history.vals[history.size] = value;
+	history.size++;
 
-      print_val(++cur_y, cur_x, value, 0);
-      cur_y++;
-      move(cur_y, cur_x);
+	print_val(++cur_y, cur_x, value, 0);
+	cur_y++;
+	move(cur_y, cur_x);
+      }else{
+	handle(line_string, &yard, &history);
+      }
     }
   }while(line_size != 0);
   
