@@ -32,11 +32,11 @@ void push_op(shunting_t *yard, const char c){
 }
 
 char pop_op(shunting_t *yard){
-  return yard->op_stack[--yard->op_size];
+  return yard->op_size > 0 ? yard->op_stack[--yard->op_size] : 0;
 }
 
 char peak_op(const shunting_t *yard){
-  return yard->op_stack[yard->op_size-1];
+  return yard->op_size > 0 ? yard->op_stack[yard->op_size-1] : 0;
 }
 
 int size_op(const shunting_t *yard){
@@ -69,11 +69,11 @@ void push_val(shunting_t *yard, const double v){
 }
 
 double pop_val(shunting_t *yard){
-  return yard->val_stack[--yard->val_size];
+  return yard->val_size > 0 ? yard->val_stack[--yard->val_size] : 0;
 }
 
 double peak_val(const shunting_t *yard){
-  return yard->val_stack[yard->val_size-1];
+  return yard->val_size > 0 ? yard->val_stack[yard->val_size-1] : 0;
 }
 
 int size_val(const shunting_t *yard){
