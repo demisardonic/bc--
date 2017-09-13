@@ -10,19 +10,8 @@
 #include "shunting.h"
 #include "util.h"
 
-void draw_newest_history(const history_t *history){
-  int height, cur_x;
-  getmaxyx(stdscr, height, cur_x);
-  cur_x = 0;
-  clear();
-  int history_from = history->size - (height / 2);
-  int cur_y = 0;
+void redraw_screen_offset(const history_t *history, int y_offset){
 
-  while(history_from < history->size){
-    mvprintw(cur_y++, cur_x, history->lines[history_from]);
-    mvprintw(cur_y++, cur_x, "%lf", history->vals[history_from]);
-    move(cur_y, cur_x);    
-  }
 }
 
 int main(int argv, char **argc){
@@ -60,13 +49,16 @@ int main(int argv, char **argc){
 	mvprintw(cur_y, 0, line+x_offset);
 	should_redraw = 0;
       }
-      mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
+      //clear_line(20);
+      //mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
       key = getch();
 
       //TODO need 256 bounds check for input line
       if(is_val(key)){
-	line[line_size++] = key;
-	mvaddch(cur_y, (cur_x++)-x_offset, key);
+	line[line_size] = key;
+	line_size++;
+	mvaddch(cur_y, cur_x-x_offset, key);
+	cur_x++;
 	if(line_size >= max_width){
 	  x_offset++;
 	  should_redraw = 1;
@@ -81,7 +73,6 @@ int main(int argv, char **argc){
 	  should_redraw = 1;
 	}
       }else if(key == KEY_BACKSPACE && line_size > 0){
-	//TODO handle backspacing with x_offset > 0
 	line_size--;
 	line[line_size] = '\0';
 	should_redraw = 1;
@@ -96,8 +87,8 @@ int main(int argv, char **argc){
     
     if(line_size > 0){
       //TODO handle more calculations than vertical space allows
-      if(history.size * 2 > max_height){
-	y_offset++;
+      if((history.size + y_offset) * 2 >= max_height){
+	
       }
       
       //malloc a char * for the size of the input
