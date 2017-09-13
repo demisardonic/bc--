@@ -31,9 +31,9 @@ int main(int argv, char **argc){
   char line[256];
   int line_size;
   int key, cur_y, cur_x;
+  int x_offset, y_offset;
   int max_width, max_height;
-
-  getmaxyx(stdscr, max_height, max_width);
+  int should_redraw;
 
   memset(line, 0, 256);
   
@@ -43,36 +43,61 @@ int main(int argv, char **argc){
   initscr();
   keypad(stdscr, TRUE);
   noecho();
-  cur_y = cur_x = 0;
 
-  // Keyboard input, count the size of the input
+  should_redraw = 0;
+  cur_y = cur_x = 0;
+  y_offset = x_offset = 0;
+  getmaxyx(stdscr, max_height, max_width);
+  
+  //Keyboard input, count the size of the input
   do{
     line_size = 0;
+    x_offset = 0;
     do{
+
+      if(should_redraw){
+	clear_line(cur_y);
+	mvprintw(cur_y, 0, line+x_offset);
+	should_redraw = 0;
+      }
+      mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
       key = getch();
 
-      //TODO handle single line that goes over max width
-      if(line_size > max_width){
-
-      }
       //TODO need 256 bounds check for input line
       if(is_val(key)){
 	line[line_size++] = key;
-	mvaddch(cur_y, cur_x++, key);
+	mvaddch(cur_y, (cur_x++)-x_offset, key);
+	if(line_size >= max_width){
+	  x_offset++;
+	  should_redraw = 1;
+	}
       }else if(is_op(key)){
-	line[line_size++] = key;
-	mvaddch(cur_y, cur_x++, key);
+	line[line_size] = key;
+	line_size++;
+	mvaddch(cur_y, cur_x-x_offset, key);
+	cur_x++;
+	if(line_size >= max_width){
+	  x_offset++;
+	  should_redraw = 1;
+	}
       }else if(key == KEY_BACKSPACE && line_size > 0){
-	line[--line_size] = '\0';
-	mvaddch(cur_y, --cur_x, ' ');
-	move(cur_y, cur_x);
+	//TODO handle backspacing with x_offset > 0
+	line_size--;
+	line[line_size] = '\0';
+	should_redraw = 1;
+	if(x_offset > 0){
+	  cur_x--;
+	  x_offset--;
+	}else{
+	  cur_x--;
+	}
       }
     }while(key != '\n');
     
     if(line_size > 0){
       //TODO handle more calculations than vertical space allows
       if(history.size * 2 > max_height){
-
+	y_offset++;
       }
       
       //malloc a char * for the size of the input
@@ -91,15 +116,11 @@ int main(int argv, char **argc){
       //parse that input with shunting_yard structure
       parse(&yard, line_string);
       double value = pop_val(&yard);
-
+      //store the calculated value in the history
       history.vals[history.size] = value;
       history.size++;
 
-      if(value == floor(value)){
-	mvprintw(++cur_y, cur_x, "%d", (int) value);
-      }else{
-	mvprintw(++cur_y, cur_x, "%lf", value);
-      }
+      print_val(++cur_y, cur_x, value, 0);
       cur_y++;
       move(cur_y, cur_x);
     }

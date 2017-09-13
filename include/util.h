@@ -6,5 +6,7 @@
 int op_to_pres(char);
 int is_val(char);
 int is_op(char);
+void print_val(int, int, double, int);
+void clear_line(int);
 
 #endif
