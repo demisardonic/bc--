@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "shunting.h"
+#include "util.h"
 
 void shunting_init(shunting_t *yard){
   yard->val_stack = malloc(sizeof(double) * DEFAULT_LENGTH);

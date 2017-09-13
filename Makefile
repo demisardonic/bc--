@@ -8,7 +8,7 @@ SRCEXT := c
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall -Werror
-LIB := -lm
+LIB := -lm -lncurses
 INC := -I $(INCLUDEDIR)
 
 $(TARGET): $(OBJECTS)

@@ -1,8 +1,6 @@
 #ifndef SHUNTING_H
 #define SHUNTING_H
 
-#define DEFAULT_LENGTH 10
-
 typedef struct shunting{
   double *val_stack;
   int val_size;
