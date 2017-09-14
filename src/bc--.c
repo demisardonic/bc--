@@ -21,6 +21,7 @@ int main(int argv, char **argc){
   int line_size;
   int key, cur_y, cur_x;
   int x_offset, y_offset;
+  int cur_history_cp;
   int max_width, max_height;
   int should_redraw;
 
@@ -43,6 +44,7 @@ int main(int argv, char **argc){
     line_size = 0;
     x_offset = 0;
     cur_x = 0;
+    cur_history_cp = 0;
     move(cur_y, cur_x);
     do{
       if(should_redraw){
@@ -64,15 +66,6 @@ int main(int argv, char **argc){
 	  x_offset++;
 	  should_redraw = 1;
 	}
-      }else if(is_op(key)){
-	line[line_size] = key;
-	line_size++;
-	mvaddch(cur_y, cur_x-x_offset, key);
-	cur_x++;
-	if(line_size >= max_width){
-	  x_offset++;
-	  should_redraw = 1;
-	}
       }else if(key == KEY_BACKSPACE && line_size > 0){
 	line_size--;
 	line[line_size] = '\0';
@@ -82,6 +75,27 @@ int main(int argv, char **argc){
 	  x_offset--;
 	}else{
 	  cur_x--;
+	}
+      }else if (key == KEY_UP){
+	if(cur_history_cp < history.size){
+	  cur_history_cp++;
+	  char *tmp = history.lines[history.size - cur_history_cp];
+	  strcpy(line, tmp);
+	  line_size = cur_x = strlen(tmp);
+	  clear_line(cur_y);
+	  mvprintw(cur_y, 0, line);
+	}
+      }else if (key == KEY_DOWN){
+	if(cur_history_cp > 1){
+	  cur_history_cp--;
+	  if(!cur_history_cp){
+	    //TODO Handle scroll down past history
+	  }
+	  char *tmp = history.lines[history.size - cur_history_cp];
+	  strcpy(line, tmp);
+	  line_size = cur_x = strlen(tmp);
+	  clear_line(cur_y);
+	  mvprintw(cur_y, 0, line);
 	}
       }
     }while(key != '\n');
