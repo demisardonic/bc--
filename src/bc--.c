@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "command.h"
 #include "history.h"
@@ -19,11 +20,12 @@ int main(int argv, char **argc){
   history_t history;
   char line[256];
   int line_size;
-  int key, cur_y, cur_x;
+  int key, cur_y;
   int x_offset, y_offset;
   int cur_history_cp;
   int max_width, max_height;
   int should_redraw;
+  uint32_t debug_value;
 
   memset(line, 0, 256);
   
@@ -35,7 +37,7 @@ int main(int argv, char **argc){
   noecho();
 
   should_redraw = 0;
-  cur_y = cur_x = 0;
+  cur_y = 0;
   y_offset = x_offset = 0;
   getmaxyx(stdscr, max_height, max_width);
   
@@ -43,27 +45,29 @@ int main(int argv, char **argc){
   do{
     line_size = 0;
     x_offset = 0;
-    cur_x = 0;
     cur_history_cp = 0;
-    move(cur_y, cur_x);
     do{
       if(should_redraw){
 	clear_line(cur_y);
 	mvprintw(cur_y, 0, line+x_offset);
 	should_redraw = 0;
       }
-      clear_line(20);
-      mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
-      mvprintw(21,0,"his:%d", cur_history_cp);
+      if(HAS_BIT(debug_value, DEBUG_INFO)){
+	clear_line(20);
+	clear_line(21);
+	mvprintw(20,0,"y:%d yoff:%d xoff:%d line:%d", cur_y,  y_offset, x_offset, line_size);
+	mvprintw(21,0,"his:%d", cur_history_cp);
+      }
+      move(cur_y, line_size);
       key = getch();
-
+      
       //TODO need 256 bounds check for input line
       if(is_val(key) || is_op(key) || key == '`' || is_alpha(key)){
 	line[line_size] = key;
+	mvaddch(cur_y, line_size-x_offset, key);
 	line_size++;
-	mvaddch(cur_y, cur_x-x_offset, key);
-	cur_x++;
-	if(line_size >= max_width){
+	
+	if(line_size > max_width){
 	  x_offset++;
 	  should_redraw = 1;
 	}
@@ -72,19 +76,18 @@ int main(int argv, char **argc){
 	line[line_size] = '\0';
 	should_redraw = 1;
 	if(x_offset > 0){
-	  cur_x--;
 	  x_offset--;
-	}else{
-	  cur_x--;
 	}
       }else if (key == KEY_UP){
 	if(cur_history_cp < history.size){
 	  cur_history_cp++;
 	  char *tmp = history.lines[history.size - cur_history_cp];
 	  strcpy(line, tmp);
-	  line_size = cur_x = strlen(tmp);
-	  clear_line(cur_y);
-	  mvprintw(cur_y, 0, line);
+	  line_size = strlen(tmp);
+	  if(line_size > max_width){
+	    x_offset = line_size - max_width;
+	  }
+	  should_redraw = 1;
 	}
       }else if (key == KEY_DOWN){
 	if(cur_history_cp > 0){
@@ -95,10 +98,12 @@ int main(int argv, char **argc){
 	  }else{	    
 	    char *tmp = history.lines[history.size - cur_history_cp];
 	    strcpy(line, tmp);
-	    line_size = cur_x = strlen(tmp);
+	    line_size = strlen(tmp);
 	  }
-	  clear_line(cur_y);
-	  mvprintw(cur_y, 0, line);
+	  if(line_size > max_width){
+	    x_offset = line_size - max_width;
+	  }
+	  should_redraw = 1;
 	}
       }
     }while(key != '\n');
@@ -113,10 +118,8 @@ int main(int argv, char **argc){
       char *line_string = (char *)malloc(sizeof(char) * (line_size + 1));
       memcpy(line_string, line, line_size);
       line_string[line_size] = '\0';
-      cur_x = 0;
       cur_y++;
-      mvaddch(cur_y, cur_x, '>');
-      cur_x++;
+      mvaddch(cur_y, 0, '>');
       if(line_string[0] != '`'){
 	
 	//store that pointer within history
@@ -127,20 +130,25 @@ int main(int argv, char **argc){
 	}
 	history.lines[history.size] = line_string;
       
-	//parse that input with shunting_yard structure
-	parse(&yard, line_string);
-	double value = pop_val(&yard);
+	double value;
+	if(cur_history_cp && !strcmp(line_string, history.lines[history.size - cur_history_cp])){
+	  value = history.vals[history.size - cur_history_cp];
+	}else{
+	  //parse that input with shunting_yard structure
+	  parse(&yard, line_string);
+	  value = pop_val(&yard);
+	}
 	//store the calculated value in the history
 	history.vals[history.size] = value;
 	history.size++;
 
-	print_val(cur_y, cur_x, value, 0);
+	print_val(cur_y, 1, value, 0);
       }else{
-	move(cur_y, cur_x);
-	handle(line_string, &yard, &history);
+	move(cur_y, 1);
+	handle(line_string, &yard, &history, &debug_value);
       }
 	cur_y++;
-	move(cur_y, cur_x);
+	move(cur_y, 0);
     }
   }while(line_size != 0);
   
