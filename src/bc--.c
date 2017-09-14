@@ -52,8 +52,9 @@ int main(int argv, char **argc){
 	mvprintw(cur_y, 0, line+x_offset);
 	should_redraw = 0;
       }
-      //clear_line(20);
-      //mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
+      clear_line(20);
+      mvprintw(20,0,"y:%d x:%d yoff:%d xoff:%d line:%d", cur_y, cur_x, y_offset, x_offset, line_size);
+      mvprintw(21,0,"his:%d", cur_history_cp);
       key = getch();
 
       //TODO need 256 bounds check for input line
@@ -86,14 +87,16 @@ int main(int argv, char **argc){
 	  mvprintw(cur_y, 0, line);
 	}
       }else if (key == KEY_DOWN){
-	if(cur_history_cp > 1){
+	if(cur_history_cp > 0){
 	  cur_history_cp--;
 	  if(!cur_history_cp){
-	    //TODO Handle scroll down past history
+	    memset(line, 0, 256);
+	    line_size = 0;
+	  }else{	    
+	    char *tmp = history.lines[history.size - cur_history_cp];
+	    strcpy(line, tmp);
+	    line_size = cur_x = strlen(tmp);
 	  }
-	  char *tmp = history.lines[history.size - cur_history_cp];
-	  strcpy(line, tmp);
-	  line_size = cur_x = strlen(tmp);
 	  clear_line(cur_y);
 	  mvprintw(cur_y, 0, line);
 	}
