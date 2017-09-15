@@ -22,5 +22,14 @@ void handle(const char *line, shunting_t *yard, history_t *history, uint32_t *de
       clear_line(20);
       clear_line(21);
     }
+  }else if (!strcmp("`toggleFloor", line)){
+    *debug_value ^= DEBUG_FLOOR;
+    if(HAS_BIT(*debug_value, DEBUG_FLOOR)){
+      printw("Force Floor activated.");
+    }else{
+      printw("Force Floor deactivated.");
+    }
+  }else{
+    printw("Invalid Command");
   }
 }

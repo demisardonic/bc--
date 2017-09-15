@@ -3,8 +3,8 @@
 
 #define DEFAULT_LENGTH 10
 
-#define DEBUG_INFO 0x0001
-#define DEBUG_2 0x0002
+#define DEBUG_INFO  0x0001
+#define DEBUG_FLOOR 0x0002
 #define DEBUG_3 0x0004
 #define DEBUG_4 0x0008
 #define DEBUG_5 0x0010

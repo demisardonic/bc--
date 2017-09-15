@@ -25,11 +25,11 @@ int is_alpha(char c){
   return (c | 0x20) >= 'a' && (c | 0x20) <= 'z';
 }
 
-void print_val(int y, int x, double val, int force_double){
-  if(force_double || val != floor(val)){
-    mvprintw(y, x, "%lf", val);
-  }else{
+void print_val(int y, int x, double val, int force_floor){
+  if(force_floor || val == floor(val)){
     mvprintw(y, x, "%d", (int) val);
+  }else{
+    mvprintw(y, x, "%lf", val);
   }
 }
 
